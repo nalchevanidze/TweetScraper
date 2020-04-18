@@ -235,11 +235,11 @@ class SaveToCSVFilePipeline(object):
 
 def writeCVS(path,columns, dict_data):
     if not (os.path.isfile(path)):
-        with open(path, 'w', newline='') as f:
+        with open(path, 'w', newline='', encoding='utf-8') as f:
             csv_w = csv.writer(f, delimiter=';', quoting=csv.QUOTE_NONNUMERIC)
             csv_w.writerow(columns)
     
-    with open(path, 'a', newline='') as csvfile:
+    with open(path, 'a', newline='', encoding='utf-8') as csvfile:
         csv_file = csv.writer(csvfile, delimiter=';', quoting=csv.QUOTE_MINIMAL)
 
         csv_list = [dict_data.get(column) for  column in columns]
