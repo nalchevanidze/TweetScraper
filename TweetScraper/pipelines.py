@@ -228,7 +228,9 @@ class SaveToCSVFilePipeline(object):
 
     def save_to_file(self, item, fname):
         columns = ['ID','datetime','text','user_id','usernameTweet']
-        savePath = os.path.join(fname,item['query'] + ".csv");
+        name = item['query'].replace(':','').replace('#','')
+
+        savePath = os.path.join(fname,name + ".csv");
         writeCVS(savePath,columns,  dict(item))
 
 def writeCVS(path,columns, dict_data):
