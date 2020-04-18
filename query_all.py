@@ -46,7 +46,7 @@ def collect (name):
     df = df.replace({'\r': ' '}, regex=True) # remove carriage return in the dataframe
 
     # Export to csv
-    df.to_csv(name + ".csv") 
+    df.to_csv("/Data/" + name + ".csv") 
 
 
 def processQuery (query):
