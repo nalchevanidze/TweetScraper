@@ -5,7 +5,6 @@ import logging
 import pymongo
 import json
 import os
-import csv
 
 # for mysql
 import mysql.connector
@@ -210,37 +209,3 @@ class SaveToFilePipeline(object):
         '''
         with open(fname,'w', encoding='utf-8') as f:
             json.dump(dict(item), f, ensure_ascii=False)
-
-class SaveToCSVFilePipeline(object):
-    ''' pipeline that save data to disk '''
-    def __init__(self):
-        self.saveTweetPath = SETTINGS['SAVE_TWEET_PATH']
-        self.saveUserPath = SETTINGS['SAVE_USER_PATH']
-        mkdirs(self.saveTweetPath) # ensure the path exists
-        mkdirs(self.saveUserPath)
-
-    def process_item(self, item, spider):
-        if isinstance(item, Tweet):
-            savePath = os.path.join(self.saveTweetPath)
-            self.save_to_file(item,savePath)
-            logger.debug("Add tweet:%s" %item['url'])
-        pass 
-
-    def save_to_file(self, item, fname):
-        columns = ['ID','datetime','text','user_id','usernameTweet']
-        name = item['query'].replace(':','').replace('#','')
-
-        savePath = os.path.join(fname,name + ".csv");
-        writeCVS(savePath,columns,  dict(item))
-
-def writeCVS(path,columns, dict_data):
-    if not (os.path.isfile(path)):
-        with open(path, 'w', newline='', encoding='utf-8') as f:
-            csv_w = csv.writer(f, delimiter=';', quoting=csv.QUOTE_NONNUMERIC)
-            csv_w.writerow(columns)
-    
-    with open(path, 'a', newline='', encoding='utf-8') as csvfile:
-        csv_file = csv.writer(csvfile, delimiter=';', quoting=csv.QUOTE_MINIMAL)
-
-        csv_list = [dict_data.get(column) for  column in columns]
-        csv_file.writerow(csv_list)
