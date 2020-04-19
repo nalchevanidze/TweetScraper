@@ -1,9 +1,18 @@
 import subprocess
 import pandas as pd
 import json
-import os
+import os 
 import shutil
 import pathlib 
+
+OUTPUT_DIR = 'Data/csv';
+SOURCE_DIR = 'Data/tweet'
+
+def clearDir (name):
+    print('clear ' + name)
+    # clean the directory tweet
+    if os.path.isdir(name):
+        shutil.rmtree(name)
 
 def callScrapy(query): 
 
@@ -18,26 +27,24 @@ def callScrapy(query):
             ,'crawl_user="true"'
             ]
 
-    # clean the directory tweet
-    if os.path.isdir('Data/tweet'):
-        shutil.rmtree('Data/tweet/')
-    
+    clearDir(SOURCE_DIR)
+    clearDir('Data/user')
     # crawl 
+    print ('start Crawler')
     subprocess.call(args)
+    print('end Crawler')
 
+def tweetsSources ():
+    return [
+        os.path.join(SOURCE_DIR,str(file)) 
+        for file 
+            in os.listdir(SOURCE_DIR) 
+            if str(file).isdigit()
+    ]
 
-# -*- coding: utf-8 -*-
-""" on Sat Apr  4 11:01:16 2020
-https://medium.com/@kevin.a.crystal/scraping-twitter-with-tweetscraper-and-python-ea783b40443b
-"""
-def collect (name):
-    tweets = []
-    for file in os.listdir('Data/tweet/'):
-        filename = 'Data/tweet/' + str(file)
-        if filename[7:10].isdigit():
-            with open(filename, encoding='utf-8') as tweetfile:
-                pyresponse = json.loads(tweetfile.read())
-                tweets.append(pyresponse)
+def saveCSV (name, tweets):
+    
+    print('save ',len(tweets),' tweets as csv');
 
     df = pd.DataFrame(tweets, columns=['ID','datetime','text','user_id','usernameTweet'])
 
@@ -45,12 +52,22 @@ def collect (name):
     df = df.replace({'\t': ' '}, regex=True) # remove tabs in the dataframe
     df = df.replace({'\r': ' '}, regex=True) # remove carriage return in the dataframe
 
-    # Export to csv
-    df.to_csv("/Data/" + name + ".csv") 
+    savePath = os.path.join(OUTPUT_DIR,name + ".csv")
 
+    # Export to csv
+    df.to_csv(savePath) 
+
+def collect (name):
+    print('collect Tweets')
+    tweets = []
+    for src in tweetsSources():
+        with open(src, encoding='utf-8') as tweetfile:
+            tweets.append(json.loads(tweetfile.read()))
+
+    saveCSV(name,tweets)
 
 def processQuery (query):
-    print('start : ',query, sep='\n')
+    print('start query: ',query, sep='\n')
     callScrapy(query);
 
 df = pd.read_excel("Data/data.xlsx")
@@ -60,11 +77,15 @@ def processRow (content):
     start_date = str(content['start_date']).split(' ')[0]
     end_date = str(content['end_date']).split(' ')[0]
     query = 'query=#'+ tag + ' since:' + start_date + ' until:' + end_date
-    return (tag,query);
+    return (tag + ' ' +  start_date + ' ' + end_date ,query);
+
 def batchQueries ():
     return [processRow(content) for _, content  in df.iterrows()]
 
 def main ():
+    if not os.path.exists(OUTPUT_DIR):
+        os.makedirs(OUTPUT_DIR)
+
     for tag ,query in batchQueries():
         processQuery(query);
         collect(tag)
