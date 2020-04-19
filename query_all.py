@@ -43,9 +43,6 @@ def tweetsSources ():
     ]
 
 def saveCSV (name, tweets):
-    
-    print('save ',len(tweets),' tweets as csv');
-
     df = pd.DataFrame(tweets, columns=['ID','datetime','text','user_id','usernameTweet'])
 
     df = df.replace({'\n': ' '}, regex=True) # remove linebreaks in the dataframe
@@ -64,7 +61,11 @@ def collect (name):
         with open(src, encoding='utf-8') as tweetfile:
             tweets.append(json.loads(tweetfile.read()))
 
-    saveCSV(name,tweets)
+    if len(tweets) > 0:
+        saveCSV(name,tweets)
+        print('save ',len(tweets),' tweets as csv');
+    else: 
+        print("there are no tweets for " + name);
 
 def processQuery (query):
     print('start query: ',query, sep='\n')
